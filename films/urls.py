@@ -1,12 +1,11 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
 
-app_name = 'movie'
 
 urlpatterns = [
-    path('', views.collections_list, name='list'),
-    path('collection/<int:pk>/', views.collection_detail, name='collection'),
-    path('<slug:film_slug>/', views.film_page, name='detail'),
-    path('persona/<slug:person_slug>/', views.person_page, name='person_page'),
-    path('genre/<slug:genre_slug>/', views.genre_page, name='genre_page'),
+    path('collections/', views.CollectionListView.as_view()),
+    path('collection/<int:pk>/', views.CollectionDetailView.as_view()),
+    path('actor/<slug:slug>/', views.ActorDetailView.as_view()),
+    path('genre/<slug:slug>/', views.GenreView.as_view()),
+    path('<slug:slug>/', views.MovieDetailView.as_view()),
 ]

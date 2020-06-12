@@ -4,25 +4,25 @@ from django.urls import reverse
 from django.conf import settings
 
 
-class Film(models.Model):
+class Movie(models.Model):
     """Информация о фильме"""
     orig_title = models.CharField(max_length=50, verbose_name='Оригинальное название')
     ru_title = models.CharField(max_length=50, verbose_name='Название на русском')
     slug = models.SlugField(max_length=50, db_index=True, unique=True)
     description = models.TextField(max_length=1500, null=True, blank=True, verbose_name='Краткое содержание')
     country = models.CharField(max_length=100, verbose_name='Страна')
-    director = models.ManyToManyField('People', related_name='film_director',
+    directors = models.ManyToManyField('People', related_name='movie_director',
         blank=True, verbose_name='Режиссер')
     age_limit = models.PositiveIntegerField(default=0, verbose_name='Возрастное ограничение')
     tagline = models.CharField(max_length=200, null=True, blank=True, verbose_name='Слоган')
-    imdb_rating = models.DecimalField(max_digits=5, decimal_places=2,
+    imdb_rating = models.DecimalField(max_digits=4, decimal_places=1,
                     validators=[MinValueValidator(0), MaxValueValidator(10)],
                                       default=0, verbose_name='Рейтинг IMDB')
     release_date = models.DateField(verbose_name='Дата выхода')
     duration = models.PositiveIntegerField(verbose_name='Длительность', null=True, blank=True)
-    cast = models.ManyToManyField('People', related_name='film_cast', blank=True,
+    cast = models.ManyToManyField('People', related_name='movie_cast', blank=True,
                                   verbose_name='Актерский совстав')
-    genre = models.ManyToManyField('Genre', related_name='films', blank=True,
+    genres = models.ManyToManyField('Genre', related_name='movies', blank=True,
                                    verbose_name='Жанр')
     poster = models.ImageField(upload_to='movie/posters/', verbose_name='Постер')
     updated = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
@@ -38,11 +38,9 @@ class Film(models.Model):
     def __str__(self):
         return self.ru_title
 
-    def get_absolute_url(self):
-        return reverse('movie:detail', args=[self.slug])
-
     def get_cast(self):
         return self.cast.all()[:10]
+
 
 class Genre(models.Model):
     """Жанр фильма"""
@@ -57,8 +55,6 @@ class Genre(models.Model):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
-        return reverse('movie:genre_page', args=[self.slug])
 
 class People(models.Model):
     """Человек связанный с производством фильма например актер, оператор и т.д."""
@@ -77,14 +73,12 @@ class People(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return reverse('movie:person_page', args=[self.slug])
+        
 
 class Collection(models.Model):
     """Коллекция фильмов"""
     title = models.CharField(max_length=50, verbose_name='Название колекции')
-    films = models.ManyToManyField(Film, related_name='collections', verbose_name='Фильмы')
+    movies = models.ManyToManyField(Movie, related_name='collections', verbose_name='Фильмы')
     created = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
@@ -101,8 +95,5 @@ class Collection(models.Model):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
-        return reverse('movie:collection', args=[self.id])
-
     def get_films(self):
-        return self.films.all()[:8]
+        return self.movies.all()[:8]
