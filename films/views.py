@@ -1,7 +1,35 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db.models import Q
 from .models import Movie, Genre, People, Collection
 from . import serializers
+from .document import MovieDocument
+
+
+class MovieViewSet(APIView):
+    def get(self, request):
+        query = request.query_params.get('search')
+        ids = []
+        if query:
+            try:
+                s = MovieDocument.search()
+                s = s.query('multi_match', query=query, fields=["orig_title", "ru_title"])
+                response = s.execute()
+                response_dict = response.to_dict()
+                hits = response_dict['hits']['hits']
+                ids = [hit['_source']['id'] for hit in hits]
+                queryset = Movie.objects.filter(id__in=ids)
+                movie_list = list(queryset)
+                movie_list.sort(key=lambda movie: ids.index(movie.id))
+                serializer = serializers.MovieListSerializer(movie_list, many=True, context={'request': request})
+            except Exception as e:
+                print(e)
+                movies = Movie.objects.filter(
+                    Q(ru_title__icontains=query) |
+                    Q(orig_title__icontains=query)
+                ).distinct()
+                serializer = serializers.MovieListSerializer(movies, many=True, context={'request': request})
+            return Response(serializer.data)
 
 
 class CollectionListView(APIView):

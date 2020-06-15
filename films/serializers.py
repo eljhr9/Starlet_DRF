@@ -3,6 +3,7 @@ from .models import Movie, Genre, People, Collection
 from users.serializers import UserListSerializer
 
 
+
 class ActorListSerializer(serializers.ModelSerializer):
     # Сериализация списка актеров
 

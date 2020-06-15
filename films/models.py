@@ -1,7 +1,10 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.urls import reverse
 from django.conf import settings
+from django.utils.text import slugify
+
+from elasticsearch_dsl import Index
+from .document import MovieDocument
 
 
 class Movie(models.Model):
@@ -35,11 +38,25 @@ class Movie(models.Model):
         verbose_name = 'Фильм'
         ordering = ['-updated']
 
+    def save(self):
+        self.slug = slugify(self.title)
+        super(Movie, self).save()
+
     def __str__(self):
         return self.ru_title
 
     def get_cast(self):
         return self.cast.all()[:10]
+
+    def indexing(self):
+        doc = MovieDocument(
+            meta={'id': self.id},
+            ru_title=self.ru_title,
+            orig_title=self.orig_title,
+            id=self.id
+        )
+        doc.save()
+        return doc.to_dict(include_meta=True)
 
 
 class Genre(models.Model):
@@ -73,7 +90,7 @@ class People(models.Model):
 
     def __str__(self):
         return self.name
-        
+
 
 class Collection(models.Model):
     """Коллекция фильмов"""

@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     # Сторонние приложения
     'rest_framework',
     'corsheaders',
+    'django_elasticsearch_dsl',
+    # 'django_elasticsearch_dsl_drf',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +145,38 @@ STATICFILES_DIRS = (
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+    'ORDERING_PARAM': 'ordering',
+}
+
+
+
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+
+ES_HOST = config('ELASTIC_SEARCH_HOST')
+ES_PORT = config('ELASTIC_SEARCH_PORT')
+
+AWS_ACCESS_KEY = config('ACCESS_KEY_ID')
+AWS_SECRET_KEY = config('SECRET_ACCESS_KEY')
+
+AWS_SERVICE = 'es'
+AWS_REGION = 'us-west-2'
+http_auth = AWS4Auth(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_SERVICE)
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': [{'host': ES_HOST, 'port': 443}],
+        'http_auth' : http_auth,
+        'use_ssl' : True,
+        'verify_certs' : True,
+        'connection_class' : RequestsHttpConnection
+    },
+}
