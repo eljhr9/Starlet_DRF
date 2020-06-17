@@ -28,3 +28,13 @@ class MovieDocument(Document):
   class Meta:
     index = 'movie'
     using = 'default'
+
+class ActorDocument(Document):
+  name = Text(
+    analyzer=my_analyzer
+  )
+  id = Integer()
+
+  class Meta:
+    index = 'actor'
+    using = 'default'

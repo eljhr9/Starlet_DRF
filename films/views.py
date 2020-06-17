@@ -3,10 +3,10 @@ from rest_framework.views import APIView
 from django.db.models import Q
 from .models import Movie, Genre, People, Collection
 from . import serializers
-from .document import MovieDocument
+from .document import MovieDocument, ActorDocument
 
 
-class MovieViewSet(APIView):
+class MovieSearchViewSet(APIView):
     def get(self, request):
         query = request.query_params.get('search')
         ids = []
@@ -18,7 +18,11 @@ class MovieViewSet(APIView):
                 response_dict = response.to_dict()
                 hits = response_dict['hits']['hits']
                 ids = [hit['_source']['id'] for hit in hits]
-                queryset = Movie.objects.filter(id__in=ids)
+                try:
+                    quantity = int(request.query_params.get('q'))
+                    queryset = Movie.objects.filter(id__in=ids)[:quantity]
+                except:
+                    queryset = Movie.objects.filter(id__in=ids)
                 movie_list = list(queryset)
                 movie_list.sort(key=lambda movie: ids.index(movie.id))
                 serializer = serializers.MovieListSerializer(movie_list, many=True, context={'request': request})
@@ -29,6 +33,33 @@ class MovieViewSet(APIView):
                     Q(orig_title__icontains=query)
                 ).distinct()
                 serializer = serializers.MovieListSerializer(movies, many=True, context={'request': request})
+            return Response(serializer.data)
+
+
+class ActorSearchViewSet(APIView):
+    def get(self, request):
+        query = request.query_params.get('search')
+        ids = []
+        if query:
+            try:
+                s = ActorDocument.search()
+                s = s.query('match', name=query)
+                response = s.execute()
+                response_dict = response.to_dict()
+                hits = response_dict['hits']['hits']
+                ids = [hit['_source']['id'] for hit in hits]
+                try:
+                    quantity = int(request.query_params.get('q'))
+                    queryset = People.objects.filter(id__in=ids)[:quantity]
+                except:
+                    queryset = People.objects.filter(id__in=ids)
+                actor_list = list(queryset)
+                actor_list.sort(key=lambda actor: ids.index(actor.id))
+                serializer = serializers.ActorListSerializer(actor_list, many=True)
+            except Exception as e:
+                print(e)
+                actors = People.objects.filter(name__icontains=query)
+                serializer = serializers.ActorListSerializer(actors, many=True)
             return Response(serializer.data)
 
 

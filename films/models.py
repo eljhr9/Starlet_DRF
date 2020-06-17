@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.text import slugify
 
 from elasticsearch_dsl import Index
-from .document import MovieDocument
+from .document import MovieDocument, ActorDocument
 
 
 class Movie(models.Model):
@@ -36,7 +36,7 @@ class Movie(models.Model):
     class Meta:
         verbose_name_plural = 'Фильмы'
         verbose_name = 'Фильм'
-        ordering = ['-updated']
+        ordering = ['-imdb_rating']
 
     def save(self):
         self.slug = slugify(self.title)
@@ -90,6 +90,15 @@ class People(models.Model):
 
     def __str__(self):
         return self.name
+
+    def indexing(self):
+        doc = ActorDocument(
+            meta={'id': self.id},
+            name=self.name,
+            id=self.id
+        )
+        doc.save()
+        return doc.to_dict(include_meta=True)
 
 
 class Collection(models.Model):

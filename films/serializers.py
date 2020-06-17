@@ -26,7 +26,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ('ru_title', 'age_limit', 'imdb_rating', 'release_date', 'poster', 'slug')
+        fields = ('ru_title', 'orig_title', 'age_limit', 'imdb_rating', 'release_date', 'poster', 'slug')
 
     def get_poster(self, obj):
          # Удалить при подключениии AWS S3

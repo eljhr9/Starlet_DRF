@@ -171,6 +171,7 @@ AWS_SECRET_KEY = config('SECRET_ACCESS_KEY')
 AWS_SERVICE = 'es'
 AWS_REGION = 'us-west-2'
 http_auth = AWS4Auth(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_SERVICE)
+
 ELASTICSEARCH_DSL = {
     'default': {
         'hosts': [{'host': ES_HOST, 'port': 443}],

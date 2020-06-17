@@ -3,8 +3,8 @@ from django.core.management.base import BaseCommand, CommandError
 from elasticsearch_dsl import Search, Index, connections
 from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from films.models import Movie
-from films.document import MovieDocument
+from films.models import Movie, People
+from films.document import MovieDocument, ActorDocument
 from requests_aws4auth import AWS4Auth
 
 class Command(BaseCommand):
@@ -32,4 +32,24 @@ class Command(BaseCommand):
             actions=(movie.indexing() for movie in Movie.objects.all().iterator())
         )
         print('Indexed movies.')
+        print(result)
+        es = Elasticsearch(
+            [{'host': settings.ES_HOST, 'port': settings.ES_PORT, 'url_prefix': 'es', 'use_ssl': True}],
+            index="actor",
+            http_auth = awsauth,
+            use_ssl = True,
+            verify_certs = True,
+            connection_class = RequestsHttpConnection
+        )
+        actor_index = Index('actor', using='default')
+        actor_index.document(ActorDocument)
+        if actor_index.exists():
+            actor_index.delete()
+            print('Deleted actor index.')
+        ActorDocument.init()
+        result = bulk(
+            client=es,
+            actions=(actor.indexing() for actor in People.objects.all().iterator())
+        )
+        print('Indexed actors.')
         print(result)
