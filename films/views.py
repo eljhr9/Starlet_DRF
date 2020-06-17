@@ -55,7 +55,7 @@ class ActorSearchViewSet(APIView):
                     queryset = People.objects.filter(id__in=ids)
                 actor_list = list(queryset)
                 actor_list.sort(key=lambda actor: ids.index(actor.id))
-                serializer = serializers.ActorListSerializer(actor_list, many=True)
+                serializer = serializers.ActorListSerializer(actor_list, many=True, context={'request': request})
             except Exception as e:
                 print(e)
                 actors = People.objects.filter(name__icontains=query)

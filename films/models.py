@@ -86,7 +86,7 @@ class People(models.Model):
     class Meta:
         verbose_name_plural = 'Люди'
         verbose_name = 'Человек'
-        ordering = ['name']
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
