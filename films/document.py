@@ -42,8 +42,12 @@ class MovieDocument(Document):
     class Index:
         name = 'movie'
 
+
 class ActorDocument(Document):
     name = Text(
+        analyzer=my_analyzer
+    )
+    slug = Text(
         analyzer=my_analyzer
     )
     id = Integer()

@@ -1,9 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import Movie, Genre, People, Collection
+from .models import Movie, Genre, Person, Collection
 from . import serializers
 from .document import MovieDocument, ActorDocument
+
+from django.http.response import JsonResponse
+from rest_framework.parsers import JSONParser
+from .parser import parse
+from django.views.generic import UpdateView
+
 
 
 class MovieSearchViewSet(APIView):
@@ -43,23 +49,23 @@ class ActorSearchViewSet(APIView):
         if query:
             try:
                 s = ActorDocument.search()
-                s = s.query('match', name=query)
+                s = s.query('multi_match', query=query, fields=["name", "slug"])
                 response = s.execute()
                 response_dict = response.to_dict()
                 hits = response_dict['hits']['hits']
                 ids = [hit['_source']['id'] for hit in hits]
                 try:
                     quantity = int(request.query_params.get('q'))
-                    queryset = People.objects.filter(id__in=ids)[:quantity]
+                    queryset = Person.objects.filter(id__in=ids)[:quantity]
                 except:
-                    queryset = People.objects.filter(id__in=ids)
+                    queryset = Person.objects.filter(id__in=ids)
                 actor_list = list(queryset)
                 actor_list.sort(key=lambda actor: ids.index(actor.id))
                 serializer = serializers.ActorListSerializer(actor_list, many=True, context={'request': request})
             except Exception as e:
                 print(e)
-                actors = People.objects.filter(name__icontains=query)
-                serializer = serializers.ActorListSerializer(actors, many=True)
+                actors = Person.objects.filter(name__icontains=query)
+                serializer = serializers.ActorListSerializer(actors, many=True, context={'request': request})
             return Response(serializer.data)
 
 
@@ -90,7 +96,7 @@ class CollectionDetailView(APIView):
 class ActorDetailView(APIView):
     # Представление страницы актера
     def get(self, request, slug):
-        actor = People.objects.get(slug=slug)
+        actor = Person.objects.get(slug=slug)
         serializer = serializers.ActorDetailSerializer(actor, context={'request': request})
         return Response(serializer.data)
 
@@ -101,3 +107,11 @@ class GenreView(APIView):
         genre = Genre.objects.get(slug=slug)
         serializer = serializers.GenreDetailSerializer(genre, context={'request': request})
         return Response(serializer.data)
+
+
+class MovieParser(APIView):
+    # Парсит запрошенное кол-во страниц
+    def post(self, request):
+        data = JSONParser().parse(request)
+        detail = parse(data['quantity'])
+        return JsonResponse(detail, status=201)

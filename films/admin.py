@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Movie, Genre, People, Collection
+from .models import Movie, Genre, Person, Collection
+
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
@@ -7,7 +8,7 @@ class MovieAdmin(admin.ModelAdmin):
 	list_display_links = ('ru_title',)
 	search_fields = ('orig_title', 'ru_title', 'description', 'tagline')
 	list_editable = ['imdb_rating']
-	prepopulated_fields = {'slug': ('orig_title',)}
+
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -15,10 +16,10 @@ class GenreAdmin(admin.ModelAdmin):
 	prepopulated_fields = {'slug': ('title',)}
 
 
-@admin.register(People)
-class PeopleAdmin(admin.ModelAdmin):
+@admin.register(Person)
+class PersonAdmin(admin.ModelAdmin):
 	list_display = ['name', 'slug', 'career']
-	prepopulated_fields = {'slug': ('name',)}
+
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):

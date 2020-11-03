@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from elasticsearch_dsl import Search, Index, connections
 from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from films.models import Movie, People
+from films.models import Movie, Person
 from films.document import MovieDocument, ActorDocument
 from requests_aws4auth import AWS4Auth
 
@@ -49,7 +49,7 @@ class Command(BaseCommand):
         ActorDocument.init()
         result = bulk(
             client=es,
-            actions=(actor.indexing() for actor in People.objects.all().iterator())
+            actions=(actor.indexing() for actor in Person.objects.all().iterator())
         )
         print('Indexed actors.')
         print(result)

@@ -1,12 +1,12 @@
 from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
-from .views import MovieSearchViewSet, ActorSearchViewSet
 
 
 urlpatterns = [
-    path('', MovieSearchViewSet.as_view()),
-    path('actors/', ActorSearchViewSet.as_view()),
+    path('', views.MovieSearchViewSet.as_view()),
+    path('parse/', views.MovieParser.as_view()),
+    path('actors/', views.ActorSearchViewSet.as_view()),
     path('collections/', views.CollectionListView.as_view()),
     path('collection/<int:pk>/', views.CollectionDetailView.as_view()),
     path('actor/<slug:slug>/', views.ActorDetailView.as_view()),

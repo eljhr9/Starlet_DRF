@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Movie, Genre, People, Collection
+from .models import Movie, Genre, Person, Collection
 from users.serializers import UserListSerializer
 
 
@@ -8,7 +8,7 @@ class ActorListSerializer(serializers.ModelSerializer):
     # Сериализация списка актеров
 
     class Meta:
-        model = People
+        model = Person
         fields = ('name', 'slug', 'photo')
 
 
@@ -47,7 +47,7 @@ class ActorDetailSerializer(serializers.ModelSerializer):
     movie_cast = MovieListSerializer(many=True)
 
     class Meta:
-        model = People
+        model = Person
         fields = "__all__"
 
 
