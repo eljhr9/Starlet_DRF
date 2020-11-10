@@ -1,11 +1,13 @@
 from datetime import date
 from multiprocessing import Pool
 from .tmdb_parse import get_html, get_links, parse_content
-from .models import Movie, Person, Genre
-
+from .models import Movie, Person, Genre, MovieTranslations
+from pytils.translit import slugify
 from urllib.parse import urlparse
 import requests
 from django.core.files.base import ContentFile
+from django.utils.translation import get_language, get_language_info
+
 
 URL = 'https://www.themoviedb.org/movie/'
 
@@ -31,21 +33,34 @@ def save_img(url, model):
     return False
 
 
+def get_or_create_person(data):
+    person, created = Person.objects.get_or_create(
+        name = data['name'],
+        defaults={
+            'biography': data['biography'],
+            'career': data['career'],
+            'gender': data['gender'],
+            'birth_date': get_formated_date(data['birth_date']),
+            'birth_place': data['birth_place']
+        }
+    )
+    return person, created
+
+
 def load_to_db(movies):
     movie_details = {}
 
     for movie in movies:
+        if get_language() == 'en':
+            movie['release_date'] = [movie['release_date'][1], movie['release_date'][0], movie['release_date'][2]]
         film, created = Movie.objects.get_or_create(
-            ru_title=movie['ru_title'],
+            orig_title=movie['orig_title'],
             defaults={
-                'orig_title': movie['orig_title'],
                 'release_date': get_formated_date(movie['release_date'][::-1]),
-                'description': movie['description'],
                 'age_limit': movie['age_limit'],
-                'tagline': movie['tagline'],
                 'imdb_rating': movie['imdb_rating'],
                 'duration': movie['duration'],
-                'fullness': 70,
+                'fullness': 50,
             }
         )
 
@@ -56,56 +71,55 @@ def load_to_db(movies):
         movie_detail['genres'] = 'no changes'
 
         if created:
+            translate = MovieTranslations.objects.create(
+                language_code=get_language(),
+                movie=film,
+                title=movie['ru_title'],
+                description=movie['description'],
+                tagline=movie['tagline']
+            )
+            poster = save_img(movie['poster'], translate.poster)
+
             for genre in movie['genres']:
-                film.genres.add(Genre.objects.get_or_create(title=genre)[0])
+                try:
+                    genre_obj = Genre.objects.get(translations__title=genre)
+                except:
+                    genre_obj  = Genre.objects.create(title=genre, slug=slugify(genre))
+                film.genres.add(genre_obj)
 
             for director in movie['directors']:
-                persona, created = Person.objects.get_or_create(
-                    name = director['name'],
-                    biography = director['biography'],
-                    career = director['career'],
-                    gender = director['gender'],
-                    birth_date = get_formated_date(director['birth_date']),
-                    birth_place = director['birth_place']
-                )
+                persona, created = get_or_create_person(director)
                 film.directors.add(persona)
 
                 if created and director['photo'] is not None:
                     saved = save_img(director['photo'], persona.photo)
 
-
             for person in movie['cast'][::-1]:
-                persona, created = Person.objects.get_or_create(
-                    name = person['name'],
-                    biography = person['biography'],
-                    career = person['career'],
-                    gender = person['gender'],
-                    birth_date = get_formated_date(person['birth_date']),
-                    birth_place = person['birth_place']
-                )
+                persona, created = get_or_create_person(person)
                 film.cast.add(persona)
 
                 if created and person['photo'] is not None:
                     saved = save_img(person['photo'], persona.photo)
 
-            poster = save_img(movie['poster'], film.poster)
-
         elif film.fullness <= 60:
             movie_detail['changed'] = []
-            film.fullness = 70
 
-            if not film.orig_title:
-                film.orig_title = movie['orig_title']
-                movie_detail['changed'].append('orig_title')
-            if not film.description:
-                film.description = movie['description']
-                movie_detail['changed'].append('description')
+            movie_translate, created = MovieTranslations.objects.get_or_create(
+                language_code=get_language(),
+                movie=film,
+                defaults={
+                    'title': movie['ru_title'],
+                    'description': movie['description'],
+                    'tagline': movie['tagline']
+                }
+            )
+            poster = save_img(movie['poster'], movie_translate.poster)
+            if created:
+                film.fullness += 5
+
             if not film.age_limit or film.age_limit == '0+':
                 film.age_limit = movie['age_limit']
                 movie_detail['changed'].append('age_limit')
-            if not film.tagline:
-                film.tagline = movie['tagline']
-                movie_detail['changed'].append('tagline')
             if not film.imdb_rating:
                 film.imdb_rating = movie['imdb_rating']
                 movie_detail['changed'].append('imdb_rating')
@@ -120,22 +134,17 @@ def load_to_db(movies):
                 movie_detail['genres'] = {}
 
                 for genre in movie['genres']:
-                    genre_obj, created = Genre.objects.get_or_create(title=genre)
-                    movie_detail['genres'][genre] = 'created' if created else 'added'
+                    try:
+                        genre_obj = Genre.objects.get(translations__title=genre)
+                    except:
+                        genre_obj  = Genre.objects.create(title=genre, slug=slugify(genre))
                     film.genres.add(genre_obj)
 
             if not film.directors.all():
                 movie_detail['directors'] = {}
 
                 for director in movie['directors']:
-                    persona, created = Person.objects.get_or_create(
-                        name = director['name'],
-                        biography = director['biography'],
-                        career = director['career'],
-                        gender = director['gender'],
-                        birth_date = get_formated_date(director['birth_date']),
-                        birth_place = director['birth_place']
-                    )
+                    persona, created = get_or_create_person(director)
                     movie_detail['directors'][persona.name] = 'created' if created else 'added'
                     film.directors.add(persona)
 
@@ -146,14 +155,7 @@ def load_to_db(movies):
                 movie_detail['cast'] = {}
 
                 for person in movie['cast'][::-1]:
-                    persona, created = Person.objects.get_or_create(
-                        name = person['name'],
-                        biography = person['biography'],
-                        career = person['career'],
-                        gender = person['gender'],
-                        birth_date = get_formated_date(person['birth_date']),
-                        birth_place = person['birth_place']
-                    )
+                    persona, created = get_or_create_person(person)
 
                     movie_detail['cast'][persona.name] = 'created' if created else 'added'
                     film.cast.add(persona)
@@ -161,12 +163,7 @@ def load_to_db(movies):
                     if created and person['photo'] is not None:
                         saved = save_img(person['photo'], persona.photo)
 
-            if not film.poster:
-                poster = save_img(movie['poster'], film.poster)
-                movie_detail['changed'].append('poster')
-            else:
-                film.save()
-
+            film.save()
     return movie_details
 
 
@@ -175,7 +172,7 @@ def parse(quantity=1):
     for page in range(1, quantity+1):
         params = {
             'page': page,
-            'language': 'ru'
+            'language': get_language()
         }
         html = get_html(URL, params)
         if html.status_code == 200:
@@ -184,7 +181,7 @@ def parse(quantity=1):
             print('Error')
 
     with Pool(20) as p:
-        movies = p.map(parse_content, movie_links)
+        movies = p.map(parse_content, movie_links[:4])
 
     details = load_to_db(movies)
     return details

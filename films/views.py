@@ -1,13 +1,12 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
-from .models import Movie, Genre, Person, Collection
+from .parser import parse
 from . import serializers
+from .models import Movie, Genre, Person, Collection, MovieTranslations
 from .document import MovieDocument, ActorDocument
-
 from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser
-from .parser import parse
 from django.views.generic import UpdateView
 
 
@@ -31,14 +30,14 @@ class MovieSearchViewSet(APIView):
                     queryset = Movie.objects.filter(id__in=ids)
                 movie_list = list(queryset)
                 movie_list.sort(key=lambda movie: ids.index(movie.id))
-                serializer = serializers.MovieListSerializer(movie_list, many=True, context={'request': request})
+                serializer = serializers.MovieListSerializer(movie_list, many=True)
             except Exception as e:
                 print(e)
                 movies = Movie.objects.filter(
-                    Q(ru_title__icontains=query) |
+                    Q(translations__title__icontains=query) |
                     Q(orig_title__icontains=query)
                 ).distinct()
-                serializer = serializers.MovieListSerializer(movies, many=True, context={'request': request})
+                serializer = serializers.MovieListSerializer(movies, many=True)
             return Response(serializer.data)
 
 
@@ -61,11 +60,11 @@ class ActorSearchViewSet(APIView):
                     queryset = Person.objects.filter(id__in=ids)
                 actor_list = list(queryset)
                 actor_list.sort(key=lambda actor: ids.index(actor.id))
-                serializer = serializers.ActorListSerializer(actor_list, many=True, context={'request': request})
+                serializer = serializers.ActorListSerializer(actor_list, many=True)
             except Exception as e:
                 print(e)
                 actors = Person.objects.filter(name__icontains=query)
-                serializer = serializers.ActorListSerializer(actors, many=True, context={'request': request})
+                serializer = serializers.ActorListSerializer(actors, many=True)
             return Response(serializer.data)
 
 
@@ -80,8 +79,9 @@ class CollectionListView(APIView):
 class MovieDetailView(APIView):
     # Представление страницы фильма
     def get(self, request, slug):
+        language = request.query_params.get('language')
         movie = Movie.objects.get(slug=slug)
-        serializer = serializers.MovieDetailSerializer(movie, context={'request': request})
+        serializer = serializers.MovieDetailSerializer(movie)
         return Response(serializer.data)
 
 
@@ -89,7 +89,7 @@ class CollectionDetailView(APIView):
     # Представление страницы коллекции
     def get(self, request, pk):
         collection = Collection.objects.get(id=pk)
-        serializer = serializers.CollectionDetailSerializer(collection, context={'request': request})
+        serializer = serializers.CollectionDetailSerializer(collection)
         return Response(serializer.data)
 
 
@@ -97,7 +97,7 @@ class ActorDetailView(APIView):
     # Представление страницы актера
     def get(self, request, slug):
         actor = Person.objects.get(slug=slug)
-        serializer = serializers.ActorDetailSerializer(actor, context={'request': request})
+        serializer = serializers.ActorDetailSerializer(actor)
         return Response(serializer.data)
 
 
@@ -105,7 +105,16 @@ class GenreView(APIView):
     # Представление страницы актера
     def get(self, request, slug):
         genre = Genre.objects.get(slug=slug)
-        serializer = serializers.GenreDetailSerializer(genre, context={'request': request})
+        serializer = serializers.GenreDetailSerializer(genre)
+        return Response(serializer.data)
+
+class MovieTranslateView(APIView):
+    # Представление страницы актера
+    def get(self, request, slug):
+        language = request.query_params.get('language')
+        movie = Movie.objects.get(slug=slug)
+        translate = MovieTranslations.objects.get(language_code=language, movie=movie)
+        serializer = serializers.MovieTranslateSerializer(translate)
         return Response(serializer.data)
 
 

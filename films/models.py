@@ -2,26 +2,20 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from pytils.translit import slugify
-
+from django.utils.translation import gettext_lazy as _
 from .document import MovieDocument, ActorDocument
+from parler.models import TranslatableModel, TranslatedFields
+from django.utils.translation import get_language, get_language_info
 
 
 class Movie(models.Model):
     """Информация о фильме"""
-    orig_title = models.CharField(max_length=70, null=True, blank=True,
-                                  verbose_name='Оригинальное название')
-    ru_title = models.CharField(max_length=70, verbose_name='Название на русском')
+    orig_title = models.CharField(max_length=70, verbose_name='Оригинальное название')
     slug = models.SlugField(max_length=70, db_index=True, blank=True, unique=True)
-    description = models.TextField(max_length=2500, null=True, blank=True,
-                                   verbose_name='Краткое содержание')
-    country = models.CharField(max_length=100, null=True, blank=True,
-                               verbose_name='Страна')
     directors = models.ManyToManyField('Person', related_name='movie_director',
                                        blank=True, verbose_name='Режиссер')
     age_limit = models.CharField(max_length=10, default='0+', null=True, blank=True,
                                  verbose_name='Возрастное ограничение')
-    tagline = models.CharField(max_length=200, null=True, blank=True,
-                               verbose_name='Слоган')
     imdb_rating = models.DecimalField(max_digits=4, decimal_places=1,
                     validators=[MinValueValidator(0), MaxValueValidator(10)],
                     default=0, verbose_name='Рейтинг IMDB')
@@ -33,8 +27,6 @@ class Movie(models.Model):
                                   verbose_name='Актерский совстав')
     genres = models.ManyToManyField('Genre', related_name='movies', blank=True,
                                     verbose_name='Жанр')
-    poster = models.ImageField(upload_to='movie/posters/', null=True, blank=True,
-                               verbose_name='Постер')
     updated = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
     fullness = models.PositiveIntegerField(default=0, verbose_name='Полнота содержания',
                         validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -46,24 +38,30 @@ class Movie(models.Model):
         verbose_name = 'Фильм'
         ordering = ['-updated']
         unique_together = [
-            ('orig_title', 'ru_title', 'release_date'),
+            ('orig_title', 'release_date'),
         ]
 
     def save(self, *args, **kwargs):
         super(Movie, self).save()
-        self.slug = slugify(f'{self.id}-{self.ru_title}')
+        self.slug = slugify(f'{self.id}-{self.orig_title}')
         super(Movie, self).save()
 
     def __str__(self):
-        return self.ru_title
+        return self.orig_title
 
     def get_cast(self):
         return self.cast.all()[:8]
 
+    def get_translate(self):
+        return self.translations.get(language_code=get_language())
+
+    def get_available_translations(self):
+        return self.translations.all()
+
     def indexing(self):
         doc = MovieDocument(
             meta={'id': self.id},
-            ru_title=self.ru_title,
+            # ru_title=self.ru_title,
             orig_title=self.orig_title,
             id=self.id
         )
@@ -71,19 +69,42 @@ class Movie(models.Model):
         return doc.to_dict(include_meta=True)
 
 
-class Genre(models.Model):
+class MovieTranslations(models.Model):
+    """Переводы для фильмов"""
+    language_code = models.CharField(max_length=3, verbose_name='Языковой код')
+    movie = models.ForeignKey(Movie, related_name='translations', on_delete=models.CASCADE, verbose_name=_('Фильм'))
+    title = models.CharField(max_length=70, verbose_name='Название')
+    description = models.TextField(max_length=2500, null=True, blank=True,
+                                       verbose_name='Краткое содержание')
+    country = models.CharField(max_length=100, null=True, blank=True,
+                                   verbose_name='Страна')
+    tagline = models.CharField(max_length=200, null=True, blank=True,
+                                   verbose_name='Слоган')
+    poster = models.ImageField(upload_to='movie/posters/', null=True, blank=True,
+                                   verbose_name='Постер')
+
+    class Meta:
+        verbose_name_plural = 'Первеводы фильмов'
+        verbose_name = 'Первеводы фильма'
+        ordering = ['movie']
+        unique_together = [
+            ('movie', 'language_code'),
+        ]
+
+    def translate_detail(self):
+        return get_language_info(self.language_code)
+
+
+class Genre(TranslatableModel):
     """Жанр фильма"""
-    title = models.CharField(max_length=50, verbose_name='Название')
-    slug = models.SlugField(max_length=50, db_index=True, unique=True)
+    translations = TranslatedFields(
+          title = models.CharField(max_length=50),
+          slug = models.SlugField(max_length=50, db_index=True)
+    )
 
     class Meta:
         verbose_name_plural = 'Жанр'
         verbose_name = 'Жанр'
-        ordering = ['title']
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.title)
-        super(Genre, self).save()
 
     def __str__(self):
         return self.title

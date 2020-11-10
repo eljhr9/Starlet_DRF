@@ -45,13 +45,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_elasticsearch_dsl',
-    # 'django_elasticsearch_dsl_drf',
+    'parler',
+    'storages',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -123,6 +125,24 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'ru'},  # Русский
+        {'code': 'en'},  # Английский
+        {'code': 'fr'},  # Французкий
+        {'code': 'de'},  # Немецкий
+        {'code': 'pt'},  # Португальский
+        {'code': 'es'},  # Испанский
+        {'code': 'uk-UA'},  # Украинский
+        {'code': 'ar-SA'},  # Арабский
+        {'code': 'zh-cn'},  # Китайский
+    ),
+    'default': {
+        'fallback': 'ru',
+        'hide_untranslated': False,
+    }
+}
+
 LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'Europe/Kiev'
@@ -133,6 +153,19 @@ USE_L10N = True
 
 USE_TZ = True
 
+LANGUAGES = (
+    ('en', 'English'),
+    ('ru', 'Russian'),
+    ('fr', 'French'),
+    ('de', 'German'),
+    ('pt', 'Portuguese'),
+    ('es', 'Spanish'),
+    ('uk-UA', 'Ukrainian'),
+    ('ar-SA', 'Arabic'),
+    ('zh-cn', 'Simplified Chinese'),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -157,6 +190,22 @@ REST_FRAMEWORK = {
     'ORDERING_PARAM': 'ordering',
 }
 
+
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+# AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+# AWS_S3_OBJECT_PARAMETERS = {
+#   'CacheControl': 'max-age=86400',
+# }
+# AWS_LOCATION = 'static'
+
+# STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_DEFAULT_ACL = None
+
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'Starlet.storage_backends.MediaStorage'
 
 
 from elasticsearch import Elasticsearch, RequestsHttpConnection

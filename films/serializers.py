@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Movie, Genre, Person, Collection
+from .models import Movie, Genre, Person, Collection, MovieTranslations
 from users.serializers import UserListSerializer
 
 
@@ -20,17 +20,40 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('title', 'slug')
 
 
+class TranslateDetailSerializer(serializers.Serializer):
+    # Сериализация информации о языке
+    bidi = serializers.BooleanField()
+    code = serializers.CharField(max_length=10)
+    name = serializers.CharField(max_length=20)
+    name_local = serializers.CharField(max_length=20)
+    name_translated = serializers.CharField(max_length=20)
+
+
+class AvailableTranslations(serializers.ModelSerializer):
+    # Сериализация доступных переводов фильма
+     translate_detail = TranslateDetailSerializer()
+
+     class Meta:
+         model = MovieTranslations
+         fields = ('language_code', 'translate_detail')
+
+
+class MovieTranslateSerializer(serializers.ModelSerializer):
+    # Сериализация перевода для фильма
+    translate_detail = TranslateDetailSerializer()
+
+    class Meta:
+        model = MovieTranslations
+        fields = "__all__"
+
+
 class MovieListSerializer(serializers.ModelSerializer):
     # Сериализация для списка фильмов
-    poster = serializers.SerializerMethodField() # Удалить при подключениии AWS S3
+    get_translate = MovieTranslateSerializer()
 
     class Meta:
         model = Movie
-        fields = ('ru_title', 'orig_title', 'age_limit', 'imdb_rating', 'release_date', 'poster', 'slug')
-
-    def get_poster(self, obj):
-         # Удалить при подключениии AWS S3
-        return self.context['request'].build_absolute_uri( obj.poster.url)
+        fields = ('orig_title', 'age_limit', 'imdb_rating', 'release_date', 'get_translate', 'slug')
 
 
 class GenreDetailSerializer(serializers.ModelSerializer):
@@ -56,6 +79,8 @@ class MovieDetailSerializer(serializers.ModelSerializer):
     get_cast = ActorListSerializer(many=True)
     directors = ActorListSerializer(many=True)
     genres = GenreSerializer(many=True)
+    get_translate = MovieTranslateSerializer()
+    get_available_translations = AvailableTranslations(many=True)
 
     class Meta:
         model = Movie

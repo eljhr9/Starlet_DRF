@@ -69,9 +69,9 @@ def get_movie(html):
     ru_title = title.find_next('a').get_text()
     orig_title = soup.find('p', class_='wrap')
     if orig_title:
-        orig_title = orig_title.get_text().replace('Исходное название ', '')
+        orig_title = orig_title.get_text().replace('Исходное название ', '').replace('Original Title ', '')
     else:
-        orig_title = None
+        orig_title = ru_title
     description = get_text_if_not_None(soup.find('div', class_='overview'))
     age_limit = get_text_if_not_None(title.find_next('span', class_='certification'))
     tagline = get_text_if_not_None(soup.find('h3', class_='tagline'))
@@ -116,17 +116,17 @@ def get_movie(html):
 def get_person(html):
     soup = BeautifulSoup(html, 'html.parser')
     facts = soup.find('section', class_='facts').find_next('section').find_all('p')
-    data = {}
+    data = []
     for fact in facts:
         fact_title = fact.find('strong').get_text()
         fact = fact.get_text(strip=True).replace(fact_title, '')
-        data[fact_title] = None if fact == '-' else fact
+        data.append(None if fact == '-' else fact)
 
-    if data['Дата рождения']:
-        birth_date = data['Дата рождения'].split(' ')[0].split('-')
+    if data[3]:
+        birth_date = data[3].split(' ')[0].split('-')
     else:
         birth_date = None
-        
+
     photo_img = soup.find('img', class_='profile')
     if photo_img:
         photo = 'https:' + photo_img.get('src').replace('w300_and_h450_bestv2_filter(blur)', 'original')
@@ -136,13 +136,12 @@ def get_person(html):
     person = {
         'name': soup.find('h2', class_='title').get_text(strip=True),
         'biography': get_text_if_not_None(soup.find('div', class_='biography').find_next('div', class_='text')),
-        'career': data['Известность за'],
-        'gender': data['Пол'],
+        'career': data[0],
+        'gender': data[2],
         'birth_date': birth_date,
-        'birth_place': data['Место рождения'],
+        'birth_place': data[4],
         'photo': photo
     }
-
     return person
 
 
