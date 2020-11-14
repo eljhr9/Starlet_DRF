@@ -11,6 +11,8 @@ class FilmsConfig(AppConfig):
         try:
           connections.create_connection(
               'default',
-              hosts=[{'host': settings.ES_HOST, 'port': settings.ES_PORT, 'url_prefix': 'es', 'use_ssl': True}])
+              # hosts=[{'host': settings.ES_HOST, 'port': settings.ES_PORT, 'url_prefix': 'es', 'use_ssl': True}])
+              hosts=[{'host': 'localhost', 'port': '9200'}])
+
         except Exception as e:
           print(e)

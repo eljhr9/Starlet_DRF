@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 from pytils.translit import slugify
 from django.utils.translation import gettext_lazy as _
-from .document import MovieDocument, ActorDocument
+from .documents import MovieDocument, ActorDocument
 from parler.models import TranslatableModel, TranslatedFields
 from django.utils.translation import get_language, get_language_info
 
@@ -31,7 +31,7 @@ class Movie(models.Model):
     fullness = models.PositiveIntegerField(default=0, verbose_name='Полнота содержания',
                         validators=[MinValueValidator(0), MaxValueValidator(100)])
 
-    # user_rating = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)],
+    # rating = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)],
     #                                   default=0, verbose_name='Рейтинг среди пользователей')
     class Meta:
         verbose_name_plural = 'Фильмы'
@@ -61,7 +61,7 @@ class Movie(models.Model):
     def indexing(self):
         doc = MovieDocument(
             meta={'id': self.id},
-            # ru_title=self.ru_title,
+            translations=[t.title for t in self.translations.all()],
             orig_title=self.orig_title,
             id=self.id
         )
@@ -91,6 +91,9 @@ class MovieTranslations(models.Model):
             ('movie', 'language_code'),
         ]
 
+    def __str__(self):
+        return self.title
+
     def translate_detail(self):
         return get_language_info(self.language_code)
 
@@ -109,27 +112,27 @@ class Genre(TranslatableModel):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        super(Genre, self).save()
 
-class Person(models.Model):
+
+class Person(TranslatableModel):
     """Человек связанный с производством фильма например актер, оператор и т.д."""
-
-    GENDER_CHOICES = (
-        ('Мужской', "Мужской"),
-        ('Женский', "Женский"),
+    translations = TranslatedFields(
+        name = models.CharField(max_length=50, verbose_name='Полное имя'),
+        slug = models.SlugField(max_length=50, db_index=True),
+        career = models.CharField(max_length=100, verbose_name='Карьера'),
+        gender = models.CharField(max_length=15, null=True, blank=True,
+                                  verbose_name='Пол'),
+        biography = models.TextField(max_length=3000, null=True, blank=True,
+                                     verbose_name='Биография'),
+        birth_place = models.CharField(max_length=50, null=True, blank=True,
+                                       verbose_name='Место рождения')
     )
-
-    name = models.CharField(max_length=50, verbose_name='Полное имя')
-    slug = models.SlugField(max_length=50, db_index=True, unique=True)
     photo = models.ImageField(upload_to='movie/actors/', null=True, blank=True,
                               verbose_name='Фото')
-    biography = models.TextField(max_length=3000, null=True, blank=True,
-                                 verbose_name='Биография')
-    career = models.CharField(max_length=100, verbose_name='Карьера')
-    gender = models.CharField(max_length=15, null=True, blank=True,
-                              choices=GENDER_CHOICES, verbose_name='Пол')
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата рождения')
-    birth_place = models.CharField(max_length=50, null=True, blank=True,
-                                   verbose_name='Место рождения')
     updated = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
 
     class Meta:
@@ -137,7 +140,7 @@ class Person(models.Model):
         verbose_name = 'Человек'
         ordering = ['-updated']
         unique_together = [
-            ('name', 'birth_date', 'birth_place'),
+            ('photo', 'birth_date'),
         ]
 
     def __str__(self):
@@ -151,8 +154,7 @@ class Person(models.Model):
     def indexing(self):
         doc = ActorDocument(
             meta={'id': self.id},
-            name=self.name,
-            slug=self.slug,
+            name=[t.name for t in self.translations.all()],
             id=self.id
         )
         doc.save()

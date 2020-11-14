@@ -71,7 +71,8 @@ class ActorDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = "__all__"
+        fields = ('name', 'slug', 'photo', 'birth_date', 'career', 'gender',
+                  'biography', 'birth_place', 'movie_cast')
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):

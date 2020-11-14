@@ -27,8 +27,13 @@ class GenreAdmin(TranslatableAdmin):
 
 
 @admin.register(Person)
-class PersonAdmin(admin.ModelAdmin):
-	list_display = ['name', 'slug', 'career']
+class PersonAdmin(TranslatableAdmin):
+    list_display = ['name', 'slug', 'career']
+
+    def get_prepopulated_fields(self, request, obj=None):
+        return {
+            'slug': ('name',)
+        }
 
 
 @admin.register(Collection)

@@ -4,7 +4,7 @@ from django.db.models import Q
 from .parser import parse
 from . import serializers
 from .models import Movie, Genre, Person, Collection, MovieTranslations
-from .document import MovieDocument, ActorDocument
+from .documents import MovieDocument, ActorDocument
 from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser
 from django.views.generic import UpdateView
@@ -12,13 +12,14 @@ from django.views.generic import UpdateView
 
 
 class MovieSearchViewSet(APIView):
+    # Представление для поиска Фильмов
     def get(self, request):
         query = request.query_params.get('search')
         ids = []
         if query:
             try:
                 s = MovieDocument.search()
-                s = s.query('multi_match', query=query, fields=["orig_title", "ru_title"])
+                s = s.query('multi_match', query=query, fields=["orig_title", "translations"])
                 response = s.execute()
                 response_dict = response.to_dict()
                 hits = response_dict['hits']['hits']
@@ -42,13 +43,14 @@ class MovieSearchViewSet(APIView):
 
 
 class ActorSearchViewSet(APIView):
+    # Представление для поиска Людей
     def get(self, request):
         query = request.query_params.get('search')
         ids = []
         if query:
             try:
                 s = ActorDocument.search()
-                s = s.query('multi_match', query=query, fields=["name", "slug"])
+                s = s.query('multi_match', query=query, fields=["name",])
                 response = s.execute()
                 response_dict = response.to_dict()
                 hits = response_dict['hits']['hits']
@@ -96,7 +98,7 @@ class CollectionDetailView(APIView):
 class ActorDetailView(APIView):
     # Представление страницы актера
     def get(self, request, slug):
-        actor = Person.objects.get(slug=slug)
+        actor = Person.objects.get(translations__slug=slug)
         serializer = serializers.ActorDetailSerializer(actor)
         return Response(serializer.data)
 
@@ -104,9 +106,10 @@ class ActorDetailView(APIView):
 class GenreView(APIView):
     # Представление страницы актера
     def get(self, request, slug):
-        genre = Genre.objects.get(slug=slug)
+        genre = Genre.objects.get(translations__slug=slug)
         serializer = serializers.GenreDetailSerializer(genre)
         return Response(serializer.data)
+
 
 class MovieTranslateView(APIView):
     # Представление страницы актера

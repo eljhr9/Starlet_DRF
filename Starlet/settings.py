@@ -221,12 +221,18 @@ AWS_SERVICE = 'es'
 AWS_REGION = 'us-west-2'
 http_auth = AWS4Auth(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_SERVICE)
 
+# ELASTICSEARCH_DSL = {
+#     'default': {
+#         'hosts': [{'host': ES_HOST, 'port': 443}],
+#         'http_auth' : http_auth,
+#         'use_ssl' : True,
+#         'verify_certs' : True,
+#         'connection_class' : RequestsHttpConnection
+#     },
+# }
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': [{'host': ES_HOST, 'port': 443}],
-        'http_auth' : http_auth,
-        'use_ssl' : True,
-        'verify_certs' : True,
-        'connection_class' : RequestsHttpConnection
+        # 'hosts': 'localhost:9200'
+        'hosts': [{'host': 'localhost', 'port': '9200'}],
     },
 }

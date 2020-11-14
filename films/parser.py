@@ -2,7 +2,6 @@ from datetime import date
 from multiprocessing import Pool
 from .tmdb_parse import get_html, get_links, parse_content
 from .models import Movie, Person, Genre, MovieTranslations
-from pytils.translit import slugify
 from urllib.parse import urlparse
 import requests
 from django.core.files.base import ContentFile
@@ -34,16 +33,29 @@ def save_img(url, model):
 
 
 def get_or_create_person(data):
-    person, created = Person.objects.get_or_create(
-        name = data['name'],
-        defaults={
-            'biography': data['biography'],
-            'career': data['career'],
-            'gender': data['gender'],
-            'birth_date': get_formated_date(data['birth_date']),
-            'birth_place': data['birth_place']
-        }
-    )
+    # person, created = Person.objects.get_or_create(
+    #     name = data['name'],
+    #     defaults={
+    #         'biography': data['biography'],
+    #         'career': data['career'],
+    #         'gender': data['gender'],
+    #         'birth_date': get_formated_date(data['birth_date']),
+    #         'birth_place': data['birth_place']
+    #     }
+    # )
+    try:
+        person = Person.objects.get(translations__name=data['name'])
+        created = False
+    except:
+        person  = Person.objects.create(
+            name=data['name'],
+            biography = data['biography'],
+            career = data['career'],
+            gender =  data['gender'],
+            birth_date = get_formated_date(data['birth_date']),
+            birth_place = data['birth_place']
+        )
+        created = True
     return person, created
 
 
@@ -84,7 +96,7 @@ def load_to_db(movies):
                 try:
                     genre_obj = Genre.objects.get(translations__title=genre)
                 except:
-                    genre_obj  = Genre.objects.create(title=genre, slug=slugify(genre))
+                    genre_obj  = Genre.objects.create(title=genre)
                 film.genres.add(genre_obj)
 
             for director in movie['directors']:
@@ -137,7 +149,7 @@ def load_to_db(movies):
                     try:
                         genre_obj = Genre.objects.get(translations__title=genre)
                     except:
-                        genre_obj  = Genre.objects.create(title=genre, slug=slugify(genre))
+                        genre_obj  = Genre.objects.create(title=genre)
                     film.genres.add(genre_obj)
 
             if not film.directors.all():
@@ -179,6 +191,9 @@ def parse(quantity=1):
             movie_links.extend(get_links(html.text))
         else:
             print('Error')
+    # movies = []
+    # for link in movie_links[:2]:
+    #     movies.append(parse_content(link))
 
     with Pool(20) as p:
         movies = p.map(parse_content, movie_links[:4])
