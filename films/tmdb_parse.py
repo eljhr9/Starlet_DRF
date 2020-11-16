@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from django.utils.translation import gettext as _
 
 
 HEADERS = {
@@ -38,13 +39,13 @@ def get_directors(soup):
     profiles = []
     for person in peoples:
         character = person.find('p', class_='character').get_text()
-        if 'Director' in character or 'Создатель' in character:
+        if 'Director' in character or _('Создатель') in character:
             link = HOST + person.find('a').get('href')
             html = get_html(link)
             if html.status_code == 200:
                 profiles.append(get_person(html.text))
             else:
-                print('Error in parsing directors')
+                print(_('Error in parsing directors'))
     return profiles
 
 
@@ -57,7 +58,7 @@ def get_cast(soup):
         if html.status_code == 200:
             cast.append(get_person(html.text))
         else:
-            print('Error in parsing cast')
+            print(_('Error in parsing cast'))
     return cast
 
 
@@ -66,12 +67,12 @@ def get_movie(html):
 
     title = soup.find('div', class_='title ott_false')
 
-    ru_title = title.find_next('a').get_text()
+    translated_title = title.find_next('a').get_text()
     orig_title = soup.find('p', class_='wrap')
     if orig_title:
-        orig_title = orig_title.get_text().replace('Исходное название ', '').replace('Original Title ', '')
+        orig_title = orig_title.get_text().replace(_('Original Title '), '')
     else:
-        orig_title = ru_title
+        orig_title = translated_title
     description = get_text_if_not_None(soup.find('div', class_='overview'))
     age_limit = get_text_if_not_None(title.find_next('span', class_='certification'))
     tagline = get_text_if_not_None(soup.find('h3', class_='tagline'))
@@ -98,7 +99,7 @@ def get_movie(html):
 
     movie = {
         'orig_title': orig_title,
-        'ru_title': ru_title,
+        'translated_title': translated_title,
         'description': description,
         'directors': directors,
         'age_limit': age_limit,
@@ -150,4 +151,4 @@ def parse_content(url):
     if html.status_code == 200:
         return get_movie(html.text)
     else:
-        print('Error in parsing content')
+        print(_('Error in parsing content'))

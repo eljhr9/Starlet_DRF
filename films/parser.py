@@ -33,16 +33,6 @@ def save_img(url, model):
 
 
 def get_or_create_person(data):
-    # person, created = Person.objects.get_or_create(
-    #     name = data['name'],
-    #     defaults={
-    #         'biography': data['biography'],
-    #         'career': data['career'],
-    #         'gender': data['gender'],
-    #         'birth_date': get_formated_date(data['birth_date']),
-    #         'birth_place': data['birth_place']
-    #     }
-    # )
     try:
         person = Person.objects.get(translations__name=data['name'])
         created = False
@@ -76,8 +66,8 @@ def load_to_db(movies):
             }
         )
 
-        movie_details[movie['ru_title']] = {}
-        movie_detail = movie_details[movie['ru_title']]
+        movie_details[movie['translated_title']] = {}
+        movie_detail = movie_details[movie['translated_title']]
         movie_detail['status'] = 'created' if created else 'exists'
         movie_detail['changed'] = 'no changes'
         movie_detail['genres'] = 'no changes'
@@ -86,7 +76,7 @@ def load_to_db(movies):
             translate = MovieTranslations.objects.create(
                 language_code=get_language(),
                 movie=film,
-                title=movie['ru_title'],
+                title=movie['translated_title'],
                 description=movie['description'],
                 tagline=movie['tagline']
             )
@@ -120,7 +110,7 @@ def load_to_db(movies):
                 language_code=get_language(),
                 movie=film,
                 defaults={
-                    'title': movie['ru_title'],
+                    'title': movie['translated_title'],
                     'description': movie['description'],
                     'tagline': movie['tagline']
                 }
@@ -192,7 +182,7 @@ def parse(quantity=1):
         else:
             print('Error')
     # movies = []
-    # for link in movie_links[:2]:
+    # for link in movie_links[:4]:
     #     movies.append(parse_content(link))
 
     with Pool(20) as p:

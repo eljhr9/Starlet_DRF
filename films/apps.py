@@ -1,10 +1,12 @@
 from django.apps import AppConfig
 from elasticsearch_dsl import connections
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
+
 
 class FilmsConfig(AppConfig):
     name = 'films'
-    verbose_name = 'Фильмы'
+    verbose_name = _('Фильмы')
 
     def ready(self):
         import films.signals

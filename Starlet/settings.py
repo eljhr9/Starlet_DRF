@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from decouple import config
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -143,7 +144,7 @@ PARLER_LANGUAGES = {
     }
 }
 
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Europe/Kiev'
 
@@ -154,18 +155,22 @@ USE_L10N = True
 USE_TZ = True
 
 LANGUAGES = (
-    ('en', 'English'),
-    ('ru', 'Russian'),
-    ('fr', 'French'),
-    ('de', 'German'),
-    ('pt', 'Portuguese'),
-    ('es', 'Spanish'),
-    ('uk-UA', 'Ukrainian'),
-    ('ar-SA', 'Arabic'),
-    ('zh-cn', 'Simplified Chinese'),
+    ('en', _('English')),
+    ('ru', _('Russian')),
+    ('fr', _('French')),
+    ('de', _('German')),
+    ('pt', _('Portuguese')),
+    ('es', _('Spanish')),
+    ('uk-UA', _('Ukrainian')),
+    ('ar-SA', _('Arabic')),
+    ('zh-cn', _('Simplified Chinese')),
 )
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
+
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale/'),
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

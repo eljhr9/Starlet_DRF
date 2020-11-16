@@ -1,0 +1,219 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-11-16 15:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: Starlet/settings.py:158
+msgid "English"
+msgstr ""
+
+#: Starlet/settings.py:159
+msgid "Russian"
+msgstr ""
+
+#: Starlet/settings.py:160
+msgid "French"
+msgstr ""
+
+#: Starlet/settings.py:161
+msgid "German"
+msgstr ""
+
+#: Starlet/settings.py:162
+msgid "Portuguese"
+msgstr ""
+
+#: Starlet/settings.py:163
+msgid "Spanish"
+msgstr ""
+
+#: Starlet/settings.py:164
+msgid "Ukrainian"
+msgstr ""
+
+#: Starlet/settings.py:165
+msgid "Arabic"
+msgstr ""
+
+#: Starlet/settings.py:166
+msgid "Simplified Chinese"
+msgstr ""
+
+#: films/apps.py:9 films/models.py:37 films/models.py:167
+msgid "Фильмы"
+msgstr ""
+
+#: films/models.py:13
+msgid "Оригинальное название"
+msgstr ""
+
+#: films/models.py:16
+msgid "Режиссеры"
+msgstr ""
+
+#: films/models.py:18
+msgid "Возрастное ограничение"
+msgstr ""
+
+#: films/models.py:21
+msgid "Рейтинг IMDB"
+msgstr ""
+
+#: films/models.py:23
+msgid "Дата выхода"
+msgstr ""
+
+#: films/models.py:25
+msgid "Длительность"
+msgstr ""
+
+#: films/models.py:27
+msgid "Актерский совстав"
+msgstr ""
+
+#: films/models.py:29 films/models.py:109 films/models.py:110
+msgid "Жанр"
+msgstr ""
+
+#: films/models.py:30 films/models.py:136 films/models.py:169
+msgid "Дата обновления"
+msgstr ""
+
+#: films/models.py:31
+msgid "Полнота содержания"
+msgstr ""
+
+#: films/models.py:38 films/models.py:75
+msgid "Фильм"
+msgstr ""
+
+#: films/models.py:74
+msgid "Языковой код"
+msgstr ""
+
+#: films/models.py:76
+msgid "Название"
+msgstr ""
+
+#: films/models.py:78
+msgid "Краткое содержание"
+msgstr ""
+
+#: films/models.py:80
+msgid "Страна"
+msgstr ""
+
+#: films/models.py:82
+msgid "Слоган"
+msgstr ""
+
+#: films/models.py:84
+msgid "Постер"
+msgstr ""
+
+#: films/models.py:87
+msgid "Первеводы фильмов"
+msgstr ""
+
+#: films/models.py:88
+msgid "Первеводы фильма"
+msgstr ""
+
+#: films/models.py:123
+msgid "Полное имя"
+msgstr ""
+
+#: films/models.py:125
+msgid "Карьера"
+msgstr ""
+
+#: films/models.py:127
+msgid "Пол"
+msgstr ""
+
+#: films/models.py:129
+msgid "Биография"
+msgstr ""
+
+#: films/models.py:131
+msgid "Место рождения"
+msgstr ""
+
+#: films/models.py:134
+msgid "Фото"
+msgstr ""
+
+#: films/models.py:135
+msgid "Дата рождения"
+msgstr ""
+
+#: films/models.py:139
+msgid "Люди"
+msgstr ""
+
+#: films/models.py:140
+msgid "Человек"
+msgstr ""
+
+#: films/models.py:166
+msgid "Название колекции"
+msgstr ""
+
+#: films/models.py:168
+msgid "Дата создания"
+msgstr ""
+
+#: films/models.py:171
+msgid "Автор"
+msgstr ""
+
+#: films/models.py:173
+msgid "Последователи"
+msgstr ""
+
+#: films/models.py:174
+msgid "Изображение"
+msgstr ""
+
+#: films/models.py:177
+msgid "Коллекции"
+msgstr ""
+
+#: films/models.py:178
+msgid "Коллекция"
+msgstr ""
+
+#: films/tmdb_parse.py:42
+msgid "Создатель"
+msgstr ""
+
+#: films/tmdb_parse.py:48
+msgid "Error in parsing directors"
+msgstr ""
+
+#: films/tmdb_parse.py:61
+msgid "Error in parsing cast"
+msgstr ""
+
+#: films/tmdb_parse.py:74
+msgid "Original Title "
+msgstr ""
+
+#: films/tmdb_parse.py:155
+msgid "Error in parsing content"
+msgstr ""

@@ -65,7 +65,7 @@ class ActorSearchViewSet(APIView):
                 serializer = serializers.ActorListSerializer(actor_list, many=True)
             except Exception as e:
                 print(e)
-                actors = Person.objects.filter(name__icontains=query)
+                actors = Person.objects.filter(translations__name__icontains=query)
                 serializer = serializers.ActorListSerializer(actors, many=True)
             return Response(serializer.data)
 
@@ -81,7 +81,6 @@ class CollectionListView(APIView):
 class MovieDetailView(APIView):
     # Представление страницы фильма
     def get(self, request, slug):
-        language = request.query_params.get('language')
         movie = Movie.objects.get(slug=slug)
         serializer = serializers.MovieDetailSerializer(movie)
         return Response(serializer.data)
