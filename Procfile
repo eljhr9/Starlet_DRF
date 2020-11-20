@@ -1,1 +1,1 @@
-web: gunicorn Starlet.wsgi --log-file -
+web: gunicorn Starlet.wsgi --timeout 90 --log-file -
