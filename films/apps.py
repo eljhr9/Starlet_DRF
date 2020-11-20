@@ -11,10 +11,14 @@ class FilmsConfig(AppConfig):
     def ready(self):
         import films.signals
         try:
-          connections.create_connection(
-              'default',
-              # hosts=[{'host': settings.ES_HOST, 'port': settings.ES_PORT, 'url_prefix': 'es', 'use_ssl': True}])
-              hosts=[{'host': 'localhost', 'port': '9200'}])
+            if settings.IS_DEPLOYED:
+                connections.create_connection(
+                    'default',
+                    hosts=[{'host': settings.ES_HOST, 'port': settings.ES_PORT, 'url_prefix': 'es', 'use_ssl': True}])
+            else:
+                connections.create_connection(
+                    'default',
+                    hosts=[{'host': 'localhost', 'port': '9200'}])
 
         except Exception as e:
           print(e)

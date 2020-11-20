@@ -186,7 +186,7 @@ def parse(quantity=1):
     #     movies.append(parse_content(link))
 
     with Pool(20) as p:
-        movies = p.map(parse_content, movie_links[:4])
+        movies = p.map(parse_content, movie_links[:5])
 
     details = load_to_db(movies)
     return details

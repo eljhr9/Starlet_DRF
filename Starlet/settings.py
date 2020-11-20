@@ -26,8 +26,9 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
+IS_DEPLOYED = config('IS_DEPLOYED', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['mysite.com', '127.0.0.1']
+ALLOWED_HOSTS = ['.herokuapp.com', '127.0.0.1', 'localhost', 'mysite.com']
 
 
 # Application definition
@@ -48,10 +49,13 @@ INSTALLED_APPS = [
     'django_elasticsearch_dsl',
     'parler',
     'storages',
+    'rest_framework_swagger',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -181,6 +185,8 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
@@ -189,28 +195,20 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100,
     'ORDERING_PARAM': 'ordering',
 }
 
+if IS_DEPLOYED:
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_DEFAULT_ACL = None
 
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-# AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
-# AWS_S3_OBJECT_PARAMETERS = {
-#   'CacheControl': 'max-age=86400',
-# }
-# AWS_LOCATION = 'static'
-
-# STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
-# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_DEFAULT_ACL = None
-
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DEFAULT_FILE_STORAGE = 'Starlet.storage_backends.MediaStorage'
+    DEFAULT_FILE_STORAGE = 'Starlet.storage_backends.MediaStorage'
 
 
 from elasticsearch import Elasticsearch, RequestsHttpConnection
@@ -219,25 +217,36 @@ from requests_aws4auth import AWS4Auth
 ES_HOST = config('ELASTIC_SEARCH_HOST')
 ES_PORT = config('ELASTIC_SEARCH_PORT')
 
-AWS_ACCESS_KEY = config('ACCESS_KEY_ID')
-AWS_SECRET_KEY = config('SECRET_ACCESS_KEY')
+AWS_ACCESS_KEY = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_KEY = config('AWS_SECRET_ACCESS_KEY')
 
 AWS_SERVICE = 'es'
-AWS_REGION = 'us-west-2'
+AWS_REGION = config('AWS_REGION')
 http_auth = AWS4Auth(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_SERVICE)
 
-# ELASTICSEARCH_DSL = {
-#     'default': {
-#         'hosts': [{'host': ES_HOST, 'port': 443}],
-#         'http_auth' : http_auth,
-#         'use_ssl' : True,
-#         'verify_certs' : True,
-#         'connection_class' : RequestsHttpConnection
-#     },
-# }
+
 ELASTICSEARCH_DSL = {
     'default': {
-        # 'hosts': 'localhost:9200'
         'hosts': [{'host': 'localhost', 'port': '9200'}],
     },
 }
+
+# Настройки Heroku
+if os.getcwd() == '/app':
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(default='postgres://localhost')
+    }
+
+    # Поддержка заголовка 'X-Forwarded-Proto' для request.is_secure().
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    ELASTICSEARCH_DSL = {
+        'default': {
+            'hosts': [{'host': ES_HOST, 'port': ES_PORT}],
+            'http_auth' : http_auth,
+            'use_ssl' : True,
+            'verify_certs' : True,
+            'connection_class' : RequestsHttpConnection
+        },
+    }

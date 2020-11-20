@@ -53,7 +53,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ('orig_title', 'age_limit', 'imdb_rating', 'release_date', 'get_translate', 'slug')
+        fields = ('orig_title', 'slug', 'age_limit', 'imdb_rating', 'release_date', 'get_translate')
 
 
 class GenreDetailSerializer(serializers.ModelSerializer):
