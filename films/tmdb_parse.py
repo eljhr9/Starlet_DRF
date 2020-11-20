@@ -65,7 +65,8 @@ def get_cast(soup):
 def get_movie(html):
     soup = BeautifulSoup(html, 'html.parser')
 
-    title = soup.find('div', class_='title ott_false')
+    # title = soup.find('div', class_='title ott_false')
+    title = soup.find('div', class_='title')
 
     print(title)
 
