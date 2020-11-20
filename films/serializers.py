@@ -96,6 +96,7 @@ class CollectionListSerializer(serializers.ModelSerializer):
         model = Collection
         fields = ('title', 'get_films', 'id')
 
+
 class CollectionDetailSerializer(serializers.ModelSerializer):
     # Сериализация для страницы коллекции
     movies = MovieListSerializer(many=True)
