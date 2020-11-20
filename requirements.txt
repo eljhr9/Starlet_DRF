@@ -39,7 +39,6 @@ pytils==0.3
 pytz==2020.1
 requests==2.21.0
 requests-aws4auth==1.0
-requests2==2.16.0
 ruamel.yaml==0.16.12
 ruamel.yaml.clib==0.2.2
 s3transfer==0.3.3
