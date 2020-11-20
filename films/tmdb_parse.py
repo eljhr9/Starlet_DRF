@@ -67,9 +67,9 @@ def get_movie(html):
 
     title = soup.find('div', class_='title')
 
-    print(title)
-
     translated_title = title.find_next('a').get_text()
+    print(f'Parsing {translated_title}')
+
     orig_title = soup.find('p', class_='wrap')
     if orig_title:
         orig_title = orig_title.get_text().replace(_('Original Title '), '')

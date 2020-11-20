@@ -53,6 +53,8 @@ def load_to_db(movies):
     movie_details = {}
 
     for movie in movies:
+        print(f'Loading {movie["translated_title"]}')
+
         if get_language() == 'en':
             movie['release_date'] = [movie['release_date'][1], movie['release_date'][0], movie['release_date'][2]]
         film, created = Movie.objects.get_or_create(
@@ -183,11 +185,11 @@ def parse(quantity=1):
             print('Error')
 
     movies = []
-    # for link in movie_links[:5]:
-    #     movies.append(parse_content(link))
+    for link in movie_links:
+        movies.append(parse_content(link))
     #
-    with Pool(20) as p:
-        movies = p.map(parse_content, movie_links)
+    # with Pool(20) as p:
+    #     movies = p.map(parse_content, movie_links)
 
     details = load_to_db(movies)
     return details
