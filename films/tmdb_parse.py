@@ -72,7 +72,8 @@ def get_movie(html):
 
     orig_title = soup.find('p', class_='wrap')
     if orig_title:
-        text = _('Original Title ')
+        # text = _('Original Title ')
+        text = _('Исходное название ')
         print(text)
         orig_title = orig_title.get_text().replace(text, '')
     else:
