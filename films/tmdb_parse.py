@@ -72,7 +72,9 @@ def get_movie(html):
 
     orig_title = soup.find('p', class_='wrap')
     if orig_title:
-        orig_title = orig_title.get_text().replace(_('Original Title '), '')
+        text = _('Original Title ')
+        print(text)
+        orig_title = orig_title.get_text().replace(text, '')
     else:
         orig_title = translated_title
     description = get_text_if_not_None(soup.find('div', class_='overview'))
