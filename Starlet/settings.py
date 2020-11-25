@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'storages',
     'rest_framework_swagger',
     'drf_yasg',
+    'rosetta',
 ]
 
 MIDDLEWARE = [

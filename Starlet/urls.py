@@ -45,6 +45,7 @@ urlpatterns = i18n_patterns(
          name='schema-redoc'),
     path('admin/', admin.site.urls),
     path('api/movie/', include('films.urls')),
+    path('rosetta/', include('rosetta.urls')),
 )
 
 if not settings.IS_DEPLOYED:
