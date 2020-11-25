@@ -28,7 +28,7 @@ schema_view = get_schema_view(
       title="Starlet API",
       default_version='v1',
       description="This is the documentation for the Starlet API powered by Django and Django Rest Framework",
-      terms_of_service="https://www.google.com/policies/terms/",
+      # terms_of_service="https://www.google.com/policies/terms/",
       contact=openapi.Contact(email="illyaredkolis@gmail.com"),
       license=openapi.License(name="GPL-3.0 License"),
    ),
