@@ -184,12 +184,12 @@ def parse(quantity=1):
         else:
             print('Error')
 
-    movies = []
-    for link in movie_links:
-        movies.append(parse_content(link))
-    #
-    # with Pool(20) as p:
-    #     movies = p.map(parse_content, movie_links)
+    # movies = []
+    # for link in movie_links:
+    #     movies.append(parse_content(link))
+
+    with Pool(10) as p:
+        movies = p.map(parse_content, movie_links)
 
     details = load_to_db(movies)
     return details
